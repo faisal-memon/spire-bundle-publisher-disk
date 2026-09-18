@@ -41,7 +41,7 @@ jobs:
           mkdir -p dist
           for target in "linux arm64" "linux amd64"; do
             set -- $target
-            GOOS=$1 GOARCH=$2 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" \
+            GOOS=$1 GOARCH=$2 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" \
               -o "dist/spire-bundle-publisher-disk-$1-$2" ./cmd/spire-bundle-publisher-disk
           done
 
