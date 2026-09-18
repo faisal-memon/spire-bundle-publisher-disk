@@ -8,7 +8,3 @@ This repository was created from the [`go-repo-template`](https://github.com/fai
 
 Run `make lint`, `make test`, and `make govulncheck` locally. The plugin should write through a temporary file and rename it into place so readers never observe a partial bundle. The SPIRE server loads the binary through `plugin_cmd`; it does not need a separate publisher container.
 
-
-## Aqua initializer image
-
-`Dockerfile.aqua` builds a small multi-architecture image containing the pinned Aqua CLI. It is intended for a one-shot Compose initializer that reads an Aqua configuration, installs a verified plugin into a shared volume, and exits before SPIRE starts. The image is published as `ghcr.io/faisal-memon/spire-bundle-publisher-disk-aqua`.
