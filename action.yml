@@ -1,0 +1,52 @@
+name: Update Go Version In go.mod
+author: Faisal Memon
+description: Checks the latest stable Go release and updates the go directive in go.mod when it is behind.
+
+inputs:
+  go-mod-path:
+    description: Path to the go.mod file to inspect and update.
+    required: false
+    default: go.mod
+  update-toolchain:
+    description: Whether to also update an existing toolchain directive to the same Go version.
+    required: false
+    default: "false"
+
+outputs:
+  changed:
+    description: Whether the action updated go.mod.
+    value: ${{ steps.update.outputs.changed }}
+  previous-version:
+    description: The version previously declared in the go directive when changed is true.
+    value: ${{ steps.update.outputs.previous-version }}
+  updated-version:
+    description: The version written to the go directive when changed is true.
+    value: ${{ steps.update.outputs.updated-version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v7
+      with:
+        go-version-file: ${{ github.action_path }}/go.mod
+        cache: "false"
+
+    - name: Update go.mod
+      id: update
+      shell: bash
+      env:
+        INPUT_GO_MOD_PATH: ${{ inputs.go-mod-path }}
+        INPUT_UPDATE_TOOLCHAIN: ${{ inputs.update-toolchain }}
+      run: go run "${{ github.action_path }}/cmd/update-go-mod"
+
+    - name: Set up updated Go
+      if: steps.update.outputs.changed == 'true'
+      uses: actions/setup-go@v7
+      with:
+        go-version-file: ${{ inputs.go-mod-path }}
+        cache: "false"
+
+branding:
+  icon: upload-cloud
+  color: blue
