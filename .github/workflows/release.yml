@@ -29,9 +29,26 @@ jobs:
           write-tag: "true"
           write-major-tag: "true"
 
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Build release binaries
+        env:
+          VERSION: ${{ steps.bump.outputs.new-tag }}
+        run: |
+          mkdir -p dist
+          for target in "linux arm64" "linux amd64"; do
+            set -- $target
+            GOOS=$1 GOARCH=$2 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=$VERSION" \
+              -o "dist/spire-bundle-publisher-disk-$1-$2" ./cmd/spire-bundle-publisher-disk
+          done
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.bump.outputs.new-tag }}
+          files: dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
