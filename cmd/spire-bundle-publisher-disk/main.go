@@ -1,3 +1,4 @@
+// Package main implements the SPIRE disk BundlePublisher plugin.
 package main
 
 import (
@@ -11,7 +12,6 @@ import (
 	"github.com/spiffe/spire-plugin-sdk/pluginmain"
 	"github.com/spiffe/spire-plugin-sdk/pluginsdk/support/bundleformat"
 	bundlepublisherv1 "github.com/spiffe/spire-plugin-sdk/proto/spire/plugin/server/bundlepublisher/v1"
-	"github.com/spiffe/spire-plugin-sdk/proto/spire/plugin/types"
 	configv1 "github.com/spiffe/spire-plugin-sdk/proto/spire/service/common/config/v1"
 )
 
@@ -33,7 +33,7 @@ func (p *publisher) SetLogger(log hclog.Logger) { p.log = log }
 func (p *publisher) Validate(_ context.Context, req *configv1.ValidateRequest) (*configv1.ValidateResponse, error) {
 	cfg := config{Format: "pem", Filename: "bundle.pem"}
 	if err := hcl.Decode(&cfg, req.GetHclConfiguration()); err != nil {
-		return &configv1.ValidateResponse{Valid: false, Notes: []string{err.Error()}}, nil
+		return nil, fmt.Errorf("decode configuration: %w", err)
 	}
 	if cfg.Directory == "" {
 		return &configv1.ValidateResponse{Valid: false, Notes: []string{"directory is required"}}, nil
@@ -92,17 +92,17 @@ func writeAtomic(path string, data []byte, mode os.FileMode) error {
 		return err
 	}
 	tmpName := tmp.Name()
-	defer os.Remove(tmpName)
+	defer func() { _ = os.Remove(tmpName) }()
 	if err := tmp.Chmod(mode); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return err
 	}
 	if _, err := tmp.Write(data); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return err
 	}
 	if err := tmp.Sync(); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return err
 	}
 	if err := tmp.Close(); err != nil {
@@ -115,5 +115,3 @@ func main() {
 	p := &publisher{}
 	pluginmain.Serve(bundlepublisherv1.BundlePublisherPluginServer(p), configv1.ConfigServiceServer(p))
 }
-
-var _ = types.Bundle{}
