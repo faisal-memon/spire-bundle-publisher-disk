@@ -5,7 +5,7 @@ go 1.26.6
 require (
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/hcl v1.0.0
-	github.com/spiffe/spire-plugin-sdk v1.15.3
+	github.com/spiffe/spire-plugin-sdk v1.16.0
 )
 
 require (
